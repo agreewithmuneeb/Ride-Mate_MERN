@@ -1,0 +1,44 @@
+# ========================
+# Environment Variables
+# ========================
+.env
+.env.local
+.env.development
+.env.production
+
+# ========================
+# Dependencies
+# ========================
+node_modules/
+client/node_modules/
+
+# ========================
+# Build Outputs
+# ========================
+client/dist/
+dist/
+
+# ========================
+# Logs
+# ========================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# ========================
+# OS & Editor Files
+# ========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ========================
+# Misc
+# ========================
+*.local
+.cache/
