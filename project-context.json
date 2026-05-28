@@ -1,0 +1,263 @@
+{
+  "project": {
+    "name": "RouteMate",
+    "type": "MERN Stack Single Page Application",
+    "domain": "Intercity rideshare platform",
+    "purpose": "RouteMate provides an online platform where passengers can find and book available seats in cars traveling from one city to another, drivers can publish and manage verified intercity rides, and admins can manage users, driver verification, rides, bookings, and reports.",
+    "technologyStack": {
+      "frontend": ["React", "React Router DOM", "Bootstrap", "Vite", "Fetch API"],
+      "backend": ["Node.js", "Express.js", "Mongoose", "JWT", "bcrypt"],
+      "database": ["MongoDB"],
+      "security": ["Helmet", "CORS", "Express Rate Limit", "JWT Authentication"]
+    }
+  },
+  "actors": [
+    {
+      "role": "passenger",
+      "description": "A normal user who searches for rides, books available seats, tracks booking status, and manages their profile.",
+      "capabilities": [
+        "Register and login",
+        "View passenger dashboard",
+        "Search and filter available rides",
+        "View ride details",
+        "Create booking requests",
+        "View own bookings",
+        "Cancel/delete own bookings",
+        "Update profile"
+      ]
+    },
+    {
+      "role": "driver",
+      "description": "A service provider who submits identity verification, creates rides after approval, manages own rides, and accepts or rejects booking requests.",
+      "capabilities": [
+        "Register and login",
+        "View driver dashboard",
+        "Submit CNIC/ID-card reference for verification",
+        "Create rides after admin verification",
+        "View own rides",
+        "Edit own rides",
+        "Delete own rides",
+        "View passenger booking requests",
+        "Accept or reject booking requests",
+        "Update profile"
+      ]
+    },
+    {
+      "role": "admin",
+      "description": "A platform manager who controls user access, driver verification, ride moderation, booking oversight, and reports.",
+      "capabilities": [
+        "Login",
+        "View admin dashboard",
+        "Manage users",
+        "Enable or disable users",
+        "Change user roles",
+        "Delete users",
+        "Approve or reject driver verification",
+        "Manage rides",
+        "Manage bookings",
+        "View reports and statistics"
+      ]
+    }
+  ],
+  "frontend": {
+    "root": "client/src",
+    "structure": {
+      "api": "Fetch API helper functions for backend communication",
+      "components": "Reusable UI components such as Navbar, Sidebar, ProtectedRoute, RoleBasedRoute, StatCard, RideCard, DataTable, SearchBar, FilterDropdown, ConfirmDialog, and Loader",
+      "context": "AuthContext for token, user, login, register, logout, profile update, and session refresh",
+      "layouts": "PublicLayout, PassengerLayout, DriverLayout, and AdminLayout",
+      "pages": "Public, passenger, driver, and admin page groups",
+      "routes": "React Router route definitions",
+      "utils": "Auth helpers, constants, and validators"
+    },
+    "publicRoutes": [
+      "/",
+      "/about",
+      "/services",
+      "/login",
+      "/register",
+      "/unauthorized",
+      "/*"
+    ],
+    "passengerRoutes": [
+      "/passenger/dashboard",
+      "/passenger/rides",
+      "/passenger/rides/:id",
+      "/passenger/bookings",
+      "/passenger/profile"
+    ],
+    "driverRoutes": [
+      "/driver/dashboard",
+      "/driver/create-ride",
+      "/driver/my-rides",
+      "/driver/rides/:id/edit",
+      "/driver/booking-requests",
+      "/driver/verification",
+      "/driver/profile"
+    ],
+    "adminRoutes": [
+      "/admin/dashboard",
+      "/admin/users",
+      "/admin/drivers",
+      "/admin/rides",
+      "/admin/bookings",
+      "/admin/reports"
+    ],
+    "stateManagement": {
+      "global": ["AuthContext stores user, token, loading state, login, register, logout, refreshUser, and updateProfile"],
+      "pageLevel": ["Forms", "Lists", "Loading messages", "Error messages", "Search input", "Selected filters", "Confirmation dialog state"]
+    },
+    "styling": {
+      "framework": "Bootstrap",
+      "customStyles": "client/src/styles.css contains project branding and layout overrides"
+    }
+  },
+  "backend": {
+    "root": "project root",
+    "entrypoints": {
+      "server": "server.js",
+      "app": "app.js",
+      "database": "config/db.js"
+    },
+    "middleware": {
+      "protect": "Verifies JWT token and attaches authenticated user to req.user",
+      "isDriver": "Allows only driver users",
+      "isVerifiedDriver": "Allows only verified driver users",
+      "isAdmin": "Allows only admin users"
+    },
+    "apiBaseUrl": "/api",
+    "routes": {
+      "auth": [
+        "POST /api/auth/register",
+        "POST /api/auth/login",
+        "GET /api/auth/me",
+        "PUT /api/auth/profile"
+      ],
+      "rides": [
+        "POST /api/rides",
+        "GET /api/rides",
+        "GET /api/rides/my",
+        "GET /api/rides/:id",
+        "PUT /api/rides/:id",
+        "DELETE /api/rides/:id"
+      ],
+      "bookings": [
+        "POST /api/bookings",
+        "GET /api/bookings/my",
+        "GET /api/bookings/driver",
+        "GET /api/bookings/admin",
+        "PATCH /api/bookings/:id",
+        "DELETE /api/bookings/:id"
+      ],
+      "verification": [
+        "POST /api/verification/upload",
+        "GET /api/verification/queue",
+        "PATCH /api/verification/:userId/approve",
+        "PATCH /api/verification/:userId/reject"
+      ],
+      "admin": [
+        "GET /api/admin/users",
+        "GET /api/admin/drivers",
+        "PATCH /api/admin/users/:id/role",
+        "PATCH /api/admin/users/:id/status",
+        "DELETE /api/admin/users/:id",
+        "GET /api/admin/reports"
+      ]
+    }
+  },
+  "database": {
+    "provider": "MongoDB",
+    "orm": "Mongoose",
+    "models": {
+      "User": {
+        "fields": {
+          "name": "String, required",
+          "email": "String, required, unique, lowercase",
+          "password": "String, required, hashed",
+          "role": "String enum: driver, passenger, admin",
+          "isVerified": "Boolean, default false",
+          "isActive": "Boolean, default true",
+          "cnicImage": "String, simulated CNIC/ID-card reference"
+        }
+      },
+      "Ride": {
+        "fields": {
+          "driver": "ObjectId reference to User, required",
+          "origin": "String, required",
+          "destination": "String, required",
+          "date": "Date, required",
+          "seats": "Number, required, min 0",
+          "price": "Number, required, min 0"
+        }
+      },
+      "Booking": {
+        "fields": {
+          "ride": "ObjectId reference to Ride, required",
+          "passenger": "ObjectId reference to User, required",
+          "status": "String enum: pending, accepted, rejected"
+        },
+        "indexes": [
+          "Unique index on ride + passenger to prevent duplicate bookings"
+        ]
+      }
+    }
+  },
+  "businessLogic": [
+    "Only passengers can practically request bookings through the passenger UI.",
+    "Drivers cannot book their own rides.",
+    "Drivers must be verified before creating or editing rides.",
+    "Drivers can only manage their own rides and related booking requests.",
+    "Admins can manage users, drivers, rides, bookings, and reports.",
+    "Accepting a booking reduces available ride seats by one.",
+    "Changing an accepted booking away from accepted restores one seat.",
+    "Deleting an accepted booking restores one seat.",
+    "Deleting a ride also deletes related bookings.",
+    "Deleting a user also deletes related rides and bookings."
+  ],
+  "setup": {
+    "environmentVariables": {
+      "PORT": "5000",
+      "MONGO_URI": "mongodb://127.0.0.1:27017/routemate",
+      "JWT_SECRET": "your_secret_key"
+    },
+    "commands": {
+      "installBackend": "npm install",
+      "installFrontend": "npm --prefix client install",
+      "runBackend": "npm run dev",
+      "runFrontend": "npm run client",
+      "buildFrontend": "npm run build",
+      "startProductionServer": "npm start"
+    },
+    "developmentUrls": {
+      "backend": "http://localhost:5000",
+      "frontend": "http://127.0.0.1:5173"
+    }
+  },
+  "healthStatus": {
+    "lastKnownChecks": {
+      "frontendBuild": "Passed",
+      "backendImport": "Passed",
+      "backendSyntax": "Passed",
+      "rootAudit": "Passed with 0 vulnerabilities after npm audit fix",
+      "clientAudit": "Passed with 0 vulnerabilities"
+    },
+    "knownRuntimeBlocker": {
+      "issue": "MongoDB local server was not reachable during last check",
+      "error": "connect ECONNREFUSED 127.0.0.1:27017",
+      "fix": "Start MongoDB Server locally or use MongoDB Atlas and update MONGO_URI"
+    }
+  },
+  "assignmentRequirementsMapping": {
+    "mernStack": "MongoDB, Express, React, Node.js",
+    "spa": "React Router DOM single page application",
+    "interactiveFrontend": "Dashboards, forms, search, filters, confirmation dialog, dynamic role views",
+    "backendBusinessLogic": "Role permissions, driver verification, booking status updates, seat management",
+    "databaseUsage": "Mongoose schemas for users, rides, and bookings",
+    "crudOperations": "CRUD for rides, bookings, user/admin management, and profile updates",
+    "multipleActors": "Passenger, driver, admin",
+    "scopeStatement": "Included in public Home/About/Services pages",
+    "componentsPropsState": "Reusable components use props, pages use React state and effects",
+    "fetchApi": "Implemented in client/src/api/api.js",
+    "authentication": "JWT login/register/me/profile with protected and role-based routes"
+  }
+}
